@@ -33,6 +33,8 @@ deployment) and silent about everything else.
 
 ---
 
+[video for context](./ogongo.mp4)
+
 ## Install
 
 ### Homebrew (macOS / Linux)
