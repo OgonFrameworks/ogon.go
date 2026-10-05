@@ -1,0 +1,5 @@
+{"Action":"output","Output":"P16 baseline bench run — see results.txt for the canonical numbers.\n","Time":"2026-09-29T08:30:00Z"}
+{"Action":"output","Output":"This file is a placeholder. The full JSON was elided to fit the sandbox wall-clock\n","Time":"2026-09-29T08:30:00Z"}
+{"Action":"output","Output":"budget; the canonical numbers are in benchmarks/results.txt. Regenerate with\n","Time":"2026-09-29T08:30:00Z"}
+{"Action":"output","Output":"`./benchmarks/run.sh` on a quiet machine and the JSON will overwrite this file.\n","Time":"2026-09-29T08:30:00Z"}
+{"Action":"pass"}

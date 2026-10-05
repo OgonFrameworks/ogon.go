@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 OgonFrameworks. All rights reserved.
+#
+# Benchmark baseline — captured by `benchmarks/run.sh` (P16).
+# Format: standard `go test -bench -benchmem` output.
+# Repo root: /home/z/my-project/ogongo/OgonGo
+# Captured: 2026-09-29 on the sandbox dev container (Intel Xeon, 2 vCPU).
+# Benchtime: 20ms (light), 5ms (live fanout), 1x (scan streaming), 100ms (jobs).
+# Note: heavy benches were run individually due to the sandbox wall-clock
+# budget; the numbers below are representative of a single short run.
+
+goos: linux
+goarch: amd64
+cpu: Intel(R) Xeon(R) Processor
+
+# http/
+BenchmarkFrameworkOverhead-2            	    2800	      7245 ns/op	    2753 B/op	      33 allocs/op
+BenchmarkFrameworkOverheadWithParam-2   	    3278	      6915 ns/op	    3057 B/op	      34 allocs/op
+BenchmarkJSONEncode1KiB-2               	   10000	      3286 ns/op	    1408 B/op	       3 allocs/op
+BenchmarkJSONEncode1KiBPooled-2         	   10000	      2046 ns/op	    1408 B/op	       3 allocs/op
+BenchmarkJSONEncode1KiBNoPool-2         	    6811	      3306 ns/op	    1456 B/op	       4 allocs/op
+BenchmarkJSONEncode1KiBEncodeTo-2       	   12619	      2573 ns/op	     256 B/op	       2 allocs/op
+BenchmarkMiddlewareHop-2                 	   84681	       244.0 ns/op	     208 B/op	       4 allocs/op
+BenchmarkMiddlewareHopBuiltIn-2          	    3199	      6434 ns/op	    2129 B/op	      28 allocs/op
+BenchmarkRouterMatch1Route-2            	  179118	       121.6 ns/op	      80 B/op	       3 allocs/op
+BenchmarkRouterMatch10kRoutes-2         	   36134	       633.8 ns/op	     144 B/op	       3 allocs/op
+BenchmarkRouterMatchStaticShort-2       	  198780	       122.7 ns/op	      80 B/op	       3 allocs/op
+BenchmarkRouterMatchWithParam-2          	   66440	       327.5 ns/op	     416 B/op	       4 allocs/op
+BenchmarkRouterMatchSteadyState-2        	   67557	       363.6 ns/op	     432 B/op	       4 allocs/op
+
+# diag/
+BenchmarkDiagFormat-2                   	   26853	       913.9 ns/op	    1536 B/op	      11 allocs/op
+BenchmarkDiagErrorString-2             	  199381	       116.4 ns/op	     160 B/op	       3 allocs/op
+BenchmarkDiagJSONMarshal-2             	   20438	      1113 ns/op	     576 B/op	       1 allocs/op
+BenchmarkDiagWithCopy-2                	  334350	        68.49 ns/op	     176 B/op	       1 allocs/op
+BenchmarkDiagFormatShort-2             	  121621	       173.4 ns/op	      96 B/op	       4 allocs/op
+
+# runtime/
+BenchmarkSupervisorSpawn-2              	   12003	      1825 ns/op	     784 B/op	      12 allocs/op
+BenchmarkSupervisorSpawnBatched-2       	     673	     40324 ns/op	   10046 B/op	     118 allocs/op
+BenchmarkSupervisorSpawnStop-2          	   12547	      1923 ns/op	     784 B/op	      12 allocs/op
+
+# pubsub/
+BenchmarkPubSubFanout100-2             	     808	     38043 ns/op	     897 B/op	       2 allocs/op
+BenchmarkPubSubPublish-2               	   55162	       388.9 ns/op	       9 B/op	       2 allocs/op
+BenchmarkPubSubPublishManySubs-2       	    8062	      6025 ns/op	     129 B/op	       2 allocs/op
+BenchmarkPubSubSubscribe-2             	   10000	      2420 ns/op	   13824 B/op	       7 allocs/op
+
+# config/
+BenchmarkConfigLoad-2                  	      38	    272841 ns/op	  183997 B/op	    3265 allocs/op
+BenchmarkConfigLoadNoYAML-2            	    2961	      4951 ns/op	    5272 B/op	      37 allocs/op
+BenchmarkConfigExplain-2               	  852944	        16.07 ns/op	       0 B/op	       0 allocs/op
+
+# cli/
+BenchmarkCLIExplain-2                   	     584	     40056 ns/op	   74804 B/op	     578 allocs/op
+BenchmarkCLIExplainList-2              	     570	     41817 ns/op	   73908 B/op	     571 allocs/op
+BenchmarkCLINonGen/Version-2           	     673	     35147 ns/op	   70954 B/op	     535 allocs/op
+BenchmarkCLINonGen/ExplainRoute-2      	     504	     39922 ns/op	   74806 B/op	     578 allocs/op
+BenchmarkCLINonGen/ExplainModel-2      	     616	     38856 ns/op	   74485 B/op	     575 allocs/op
+BenchmarkCLINonGen/ExplainConfig-2      	     480	     42829 ns/op	   74726 B/op	     578 allocs/op
+BenchmarkCLINonGen/ExplainDiag-2       	     579	     43328 ns/op	   74546 B/op	     575 allocs/op
+BenchmarkCLINonGen/InspectRuntime-2    	     476	     44458 ns/op	   73272 B/op	     572 allocs/op
+BenchmarkCLINonGen/Health-2            	     626	     39715 ns/op	   72833 B/op	     559 allocs/op
+BenchmarkCLINonGen/Help-2              	     342	     62288 ns/op	   86538 B/op	     768 allocs/op
+BenchmarkCLIVersionJSON-2              	     638	     36117 ns/op	   71332 B/op	     542 allocs/op
+BenchmarkCLIExplainRouteJSON-2         	     474	     42592 ns/op	   74272 B/op	     570 allocs/op
+
+# record/  (-benchtime=1x — these are wall-clock heavy)
+BenchmarkScanStreaming-2                	       1	  33017186 ns/op	15383256 B/op	  380071 allocs/op
+BenchmarkScanStreaming1MRows-2          	       1	 324406664 ns/op	154335424 B/op	 3800061 allocs/op
+BenchmarkScanAllAllocating-2            	       1	  35762887 ns/op	18941968 B/op	  380075 allocs/op
+
+# live/  (-benchtime=5ms)
+BenchmarkFanout10kConns-2               	       2	   5187776 ns/op	   82848 B/op	      11 allocs/op
+BenchmarkFanout1kConns-2               	     102	     66305 ns/op	    8268 B/op	       3 allocs/op
+BenchmarkFanoutConcurrent-2             	    2548	      6050 ns/op	     592 B/op	       4 allocs/op
+
+# jobs/
+BenchmarkWorkerPoolThroughput-2         	    6945	     38968 ns/op	     910 B/op	      13 allocs/op
+BenchmarkEnqueueNoDispatch-2            	   10000	     57184 ns/op	     409 B/op	       6 allocs/op
+BenchmarkRetryBackoff-2                 	 6646615	         8.763 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFakeQueueDequeue-2              	  690930	        93.36 ns/op	      32 B/op	       1 allocs/op
+BenchmarkJobsThroughput10kPerMin-2       	    4657	     26798 ns/op	   2238938 jobs/min	     37316 jobs/sec	     880 B/op	      13 allocs/op

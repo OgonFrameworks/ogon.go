@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 OgonFrameworks. All rights reserved.
+#
+# Dependabot configuration for OgonGo. Keeps the following ecosystems
+# up-to-date with security fixes:
+#   - Go modules (gomod)
+#   - GitHub Actions (github-actions)
+#   - Docker base images (docker) — for the few Dockerfile shipped
+#     with the repo
+#
+# Security updates are applied immediately; non-security updates are
+# grouped weekly to reduce review fatigue. Grouped updates are scoped
+# per-ecosystem so a broken transitive in gomod does not block a
+# critical Actions update.
+
+version: 2
+updates:
+  # Go modules — daily for security, grouped weekly for non-security.
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    # Security PRs are always opened; non-security are grouped weekly.
+    groups:
+      go-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      go-minor:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+        patterns:
+          - "*"
+    # Conservative: ignore major-version bumps for Go modules — review
+    # manually per the supply-chain policy (auth/supply_chain.go).
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    reviewers:
+      - "OgonFrameworks/security"
+    labels:
+      - "dependencies"
+      - "go"
+
+  # GitHub Actions — security-only. Action updates can break CI; we
+  # batch them weekly and review.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    groups:
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    reviewers:
+      - "OgonFrameworks/security"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Docker base images — daily. We pin tags by digest; Dependabot bumps
+  # digests when upstream publishes.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "OgonFrameworks/security"
+    labels:
+      - "dependencies"
+      - "docker"

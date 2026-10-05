@@ -1,0 +1,233 @@
+# OgonGo — machine-readable summary
+# This file is the canonical handoff for AI agents working on an OgonGo
+# project. Keep it in sync with the public package surface; if a new
+# package lands, list it here. The structure intentionally mirrors the
+# /agentic web convention.
+
+# ---------- identity ----------
+name: OgonGo
+module: github.com/OgonFrameworks/ogon.go
+version: 0.1.0-alpha
+language: go
+license: MIT
+single-binary: ogon
+config-file: ogon.yaml (walked up from cwd; env overlay ogon.<env>.yaml)
+error-prefix: OGON-<class><nnnn>
+error-classes: C compile | R route | V validation | K config | M migration | D dependency | S security | U runtime | G generation-conflict
+exit-codes: 0 OK | 1 GenericError | 2 Usage | 3 ConfigInvalid | 4 MigrationUnsafe | 5 GenConflict | 6 TestFailure | 7 BuildFailure | 8 DoctorFailure | 130 Interrupted
+purpose: A single-binary, batteries-included Go web framework. Generated DI, typed routing, realtime, jobs, auth, observability, infra-as-code. CLI owns the whole lifecycle (new, dev, build, test, deploy).
+
+# ---------- install ----------
+install: go install github.com/OgonFrameworks/ogon.go/cmd/ogon@latest
+verify: ogon --version
+diagnostics: ogon doctor
+
+# ---------- CLI surface (ogon <command>) ----------
+commands:
+  new <name>            # scaffold a project; --template minimal|standard|modular, --db, --git, --dry-run
+  dev                   # dev supervisor: watch + regen + rebuild + restart
+  build                 # codegen -> fmt -> compile, stamps version
+  run                   # run the built binary
+  gen <thing> [name]    # generators: resource|model|route|job|auth|ui|client|openapi|test|module (supports --dry-run, --force)
+  migrate <sub>         # run|rollback|status|create|diff
+  db <sub>              # url|schema|reset|explain
+  routes <sub>          # list|check|bench
+  jobs <sub>            # list|retry|purge|run|schedule|status
+  modules <sub>         # list|add|update|search
+  inspect <what>        # routes|models|config|runtime|modules
+  deploy                # build -> push -> apply -> verify; --cloud aws|gcp|azure; --rollback; --dry-run
+  infra <sub>           # gen <target> | diff
+  test [packages]       # go test + fixtures + optional junit
+  lint                  # golangci-lint wrapper
+  fmt                   # gofmt + gen-fmt (--fix to apply)
+  check                 # CI gate: vet + gen-up-to-date + config-valid
+  add <module>          # add a module or integration
+  remove <module>       # remove a module (with orphan warning)
+  update                # framework upgrade with AST migrations
+  doctor                # env + deps + config + ports diagnostics; --fix
+  explain <thing>       # explain a concept (route|model|config|di|module|component|feature|exit-codes|gen|diag)
+  logs                  # tail local dev logs; --follow
+  health                # hit probes, print status
+  benchmark             # dx|perf suites; --suite
+  docs [query]          # open or search local docs
+  completion <shell>    # bash|zsh|fish|pwsh
+  agent                 # machine surface: dump, serve (MCP)
+
+global-flags: --json --no-color --yes -v/--verbose --project <dir> --version
+json-envelope: {"command":"...","status":"ok|error","data":{...},"diagnostics":[...]}
+
+# ---------- public packages and purpose ----------
+packages:
+  ogon              # root package — App, Boot(BootOpts), Run(ctx), Stop, Provide, Hook, State
+  auth              # sessions, OAuth, passkeys, MFA, FIPS, rate-limit, lockout, PII, supply-chain
+  auth/password     # argon2id password hashing + policy
+  auth/session      # session manager, rotation, fixation defense
+  auth/token        # JWT/OPAQUE token issue + verify
+  auth/passkey      # WebAuthn / passkey enrollment
+  auth/oauth        # OAuth2 providers
+  authz             # RBAC, tenant scoping, policy engine
+  authz/policy      # policy DSL
+  cache             # pluggable cache interface
+  cli               # the ogon command tree, exit codes, output envelope, suggest (did-you-mean)
+  cmd/ogon          # main.go — process entrypoint; defers to cli.Execute()
+  config           # ogon.yaml loader, env overlay, redact, interpolate, sources, explain
+  di                # generated DI container (codegen, not reflection; manual mode available)
+  diag              # structured diagnostics: Code/Title/What/Why/Where/Fix/Remedy/Docs
+  fullstack         # fullstack project template
+  http              # typed router, fixed middleware chain, ProblemDetails (RFC 9457), SSE/WS, sync.Pool
+  infra             # docker, compose, k8s, helm, terraform, cloudflare, secrets, deploy_guides, cost
+  infra/compose     # compose file generation
+  infra/docker      # Dockerfile generation
+  infra/k8s         # k8s manifests
+  infra/helm        # helm charts
+  infra/terraform   # terraform modules
+  infra/cloudflare  # cloudflare bindings
+  infra/actions     # GitHub Actions CI generation
+  internal/diag     # internal diag helpers (not public)
+  internal/errcodes # error-code tables (not public)
+  internal/explain  # explain-topic registry (not public)
+  jobs              # queues, retries, DLQ, idempotency, cron, outbox, workflows, tenant scoping, security
+  live              # hub, channels, presence, per-message auth, backpressure, reconnect
+  mcp               # machine agent surface (dump + serve)
+  modules           # pluggable module manifest
+  obs               # logs, traces, metrics, PII redaction, health probes, profiling, crash reporter
+  pubsub            # local + redis drivers
+  record            # models, migrations, RLS, audit, query builder, drivers (pgx, sqlite), scanner, raw escape
+  record/types      # UUID, Decimal, JSONB, Time, Enum
+  runtime           # Supervisor (goroutine ownership, panic recovery, shutdown)
+  runtime/gc        # GC tuning hooks
+  runtime/limits    # cgroup-aware runtime limits
+  test              # in-process app fixture, recorder client, auth/db fixtures, golden, OpenAPI drift, authz matrix, playwright config, CI templates, fuzz seed registry, bench wrappers, load-script gen, redaction corpus, budget regression gate, memory-leak soak + chaos helpers
+  ui                # isomorphic components, compiler, tiny JS runtime, sanitize
+
+# ---------- key public types (entry surface) ----------
+types:
+  ogon.App            # root coordinator
+  ogon.BootOpts       # ConfigPath, Env, Logger, Parent, DrainTimeout, DisableRuntimeLimits, Manual
+  ogon.State          # New|ConfigLoaded|DIBuilt|ModulesInit|Listening|Ready|ShutdownRequested|Draining|HooksStop|Exited
+  ogon.Hook           # {Name, OnStart, OnStop}
+  ogon.Boot(opts) (app, err)
+  app.Run(ctx) error
+  app.Stop() error
+  app.Provide(name, impl)        # manual DI escape hatch
+  app.Provider(name) any
+  app.AddStartHook(h) / AddStopHook(h)
+  app.State() / app.Log() / app.Supervisor() / app.Limits()
+  runtime.Supervisor             # Spawn(name, Task) / Stop / Wait / Close
+  runtime.Task                   # func(ctx) error
+  diag.Diag                      # Code, Title, What, Why, Where, Fix, Remedy, Docs, Severity
+  diag.Severity                  # Info|Warning|Error
+  http.Ctx                       # request context: JSON, HTML, Param, Bind, ...
+  http.Server                    # typed router + middleware chain
+  record.Model / record.BaseModel / record.Driver / record.TxDriver
+  live.Hub / live.Channel / live.Handle
+  jobs.Queue / jobs.Envelope / jobs.Handler / jobs.Retry / jobs.DLQDriver
+
+# ---------- agent-safe vs agent-unsafe operations ----------
+agent-safe:
+  - ogon --version / --help / explain / inspect / routes list / agent dump
+  - ogon new <name> --template minimal|standard|modular --dry-run
+  - ogon gen <thing> <name> --dry-run
+  - ogon migrate diff / status
+  - ogon doctor (no --fix)
+  - ogon fmt (no --fix), ogon lint, ogon check
+  - ogon test, ogon benchmark
+agent-unsafe:
+  - ogon new <name> (without --dry-run) writes to disk
+  - ogon gen <thing> (without --dry-run) writes files (refuses on unowned files unless --force)
+  - ogon migrate run / rollback (mutates the database)
+  - ogon migrate create (writes migration files)
+  - ogon deploy (builds + pushes + applies to a cloud)
+  - ogon infra gen (writes committed infrastructure files)
+  - ogon db reset (destructive)
+  - ogon update (AST-migrates project source)
+  - ogon fmt --fix, ogon lint --fix, ogon doctor --fix
+golden-rule: every mutating command supports --dry-run; use it before --yes.
+
+# ---------- further reading ----------
+docs:
+  - README.md
+  - CHANGELOG.md
+  - CONTRIBUTING.md
+  - SECURITY.md
+  - CODE_OF_CONDUCT.md
+  - AGENTS.md
+  - BUG-BOUNTY.md
+  - PERFORMANCE-OPTIMIZATION.md
+  - SBOM.md
+  - docs/quickstart.md
+  - docs/architecture.md
+  - docs/cookbook.md
+  - docs/security.md
+  - docs/performance.md
+  - docs/error-codes.md
+  - docs/examples.md
+  - docs/upgrade.md
+  - docs/changelog.md
+  - docs/contributing.md
+  - docs/style-guide.md
+  - docs/module-author.md
+  - docs/accessibility.md
+  - docs/tutorials/hello-world.md
+  - docs/tutorials/crud.md
+  - docs/tutorials/auth.md
+  - docs/howto/deploy.md
+  - docs/howto/migrate.md
+  - docs/howto/test.md
+  - docs/howto/debug.md
+  - docs/howto/optimize.md
+  - docs/reference/index.md
+  - docs/reference/docs-style-guide.md
+  - docs/migration/0.x-to-1.0.md
+  - docs/deploy/docker.md
+  - docs/deploy/k8s.md
+  - docs/deploy/aws.md
+  - docs/deploy/gcp.md
+  - docs/guides/crud.md
+  - docs/guides/auth.md
+  - docs/guides/realtime.md
+  - docs/guides/fullstack.md
+  - docs/guides/deploy.md
+  - docs/errors/OGON-C.md  # compile
+  - docs/errors/OGON-R.md  # route
+  - docs/errors/OGON-V.md  # validation
+  - docs/errors/OGON-K.md  # config
+  - docs/errors/OGON-M.md  # migration
+  - docs/errors/OGON-D.md  # dependency
+  - docs/errors/OGON-S.md  # security
+  - docs/errors/OGON-U.md  # runtime
+  - docs/errors/OGON-G.md  # generation conflict
+  - docs/adr/0001-state-machine.md
+  - docs/adr/0002-di-codegen.md
+  - docs/adr/0003-ui-architecture.md
+  - examples/hello-world
+  - examples/crud
+  - examples/auth
+  - examples/jobs
+  - examples/realtime
+  - examples/deploy
+  - scripts/golden-paths/hello-world.sh
+  - scripts/golden-paths/crud.sh
+  - scripts/golden-paths/auth.sh
+  - scripts/golden-paths/jobs.sh
+  - scripts/golden-paths/realtime.sh
+  - scripts/golden-paths/deploy.sh
+  - scripts/dx/ttfr.sh
+  - scripts/dx/file-line-counters.sh
+  - scripts/dx/cli-timing.sh
+
+# ---------- explain topics (DX-009: every framework behavior explained) ----------
+explain-topics:
+  - route
+  - model
+  - config
+  - di
+  - module
+  - component
+  - feature
+  - exit-codes
+  - gen
+  - diag
+  - runtime
+
+# MIT License — Copyright (c) 2026 OgonFrameworks. All rights reserved.
